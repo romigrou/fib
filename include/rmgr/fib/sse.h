@@ -22,6 +22,32 @@
 #define RMGR_FIB_SSE_H
 
 
+/*
+ * The following macros can be used to control which instruction sets to use:
+ *  - RMGR_FIB_ENABLE_SSE2
+ *  - RMGR_FIB_ENABLE_SSE3
+ *  - RMGR_FIB_ENABLE_SSSE3
+ *  - RMGR_FIB_ENABLE_SSE41
+ *  - RMGR_FIB_ENABLE_SSE42
+ *  - RMGR_FIB_ENABLE_AVX
+ *  - RMGR_FIB_ENABLE_FMA
+ *  - RMGR_FIB_ENABLE_AVX512F
+ *  - RMGR_FIB_ENABLE_AVX512VL
+ *  - RMGR_FIB_ENABLE_AVX512DQ
+ *
+ * If none of the above is defined, auto-configuration will be performed. Auto-configuration is reliable
+ * with GCC and Clang but not so much with Visual C++, so you are encouraged to always use manual
+ * configuration.
+ *
+ * If any of the above is defined, manual configuration takes place and the instruction sets are used
+ * according to the macros' values (COROLLARY: macros cannot be defined to empty).
+ *
+ * Of course, enabling a more recent instruction set implies enabling the older ones too (although there
+ * are subtleties, watch out). This means that you cannot enable SSE41 and disable SSE3, this would be
+ * inconsistent. Checks are made to prevent such inconsistencies but without any warranty.
+ */
+
+
 //=================================================================================================
 // Compiler detection
 
