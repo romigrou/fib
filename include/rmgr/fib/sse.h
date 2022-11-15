@@ -811,6 +811,53 @@ static inline __m128i _mm_sra_epi8(const __m128i& a, const __m128i& count) RMGR_
 #endif
 
 
+//=================================================================================================
+// Absolute value
+
+// 8, 16 & 32-bit
+#if !INTERNAL_RMGR_FIB_USE_SSSE3
+    #define _mm_abs_epi8   rmgr_fib_mm_abs_epi8
+    #define _mm_abs_epi16  rmgr_fib_mm_abs_epi16
+    #define _mm_abs_epi32  rmgr_fib_mm_abs_epi32
+
+    static inline __m128i rmgr_fib_mm_abs_epi8(const __m128i& a) RMGR_NOEXCEPT
+    {
+        const __m128i s = _mm_cmpgt_epi8(_mm_setzero_si128(), a);
+        return _mm_sub_epi8(_mm_xor_si128(a, s), s);
+    }
+
+    static inline __m128i rmgr_fib_mm_abs_epi16(const __m128i& a) RMGR_NOEXCEPT
+    {
+        const __m128i s = _mm_srai_epi16(a, 15);
+        return _mm_sub_epi16(_mm_xor_si128(a, s), s);
+    }
+
+    static inline __m128i rmgr_fib_mm_abs_epi32(const __m128i& a) RMGR_NOEXCEPT
+    {
+        const __m128i s = _mm_srai_epi32(a, 31);
+        return _mm_sub_epi32(_mm_xor_si128(a, s), s);
+    }
+#endif
+
+// 64-bit
+#if !INTERNAL_RMGR_FIB_USE_AVX512VL
+    #define _mm_abs_epi64  rmgr_fib_mm_abs_epi64
+
+    static inline __m128i rmgr_fib_mm_abs_epi64(const __m128i& a) RMGR_NOEXCEPT
+    {
+        #if INTERNAL_RMGR_FIB_USE_SSE42
+            const __m128i s = _mm_cmpgt_epi64(_mm_setzero_si128(), a);
+        #else
+            const __m128i s = _mm_shuffle_epi32(_mm_srai_epi32(a,31), _MM_SHUFFLE(3,3,1,1));
+        #endif
+        return _mm_sub_epi64(_mm_xor_si128(a, s), s);
+    }
+#endif
+
+// floating point
+#define _mm_abs_ps(a)  _mm_and_ps((a), _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFFu)))
+#define _mm_abs_pd(a)  _mm_and_pd((a), _mm_castsi128_pd(_mm_set1_epi64x(UINT64_C(0x7FFFFFFFFFFFFFFF))))
+
 
 RMGR_WARNING_POP()
 

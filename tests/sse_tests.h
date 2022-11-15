@@ -79,6 +79,18 @@ static void store(Scalar buffer[], const __m128i& v)
 }
 
 
+static void store(float buffer[], const __m128& v)
+{
+    _mm_store_ps(buffer, v);
+}
+
+
+static void store(double buffer[], const __m128d& v)
+{
+    _mm_storeu_pd(buffer, v);
+}
+
+
 template<typename Scalar, typename Vector>
 static RMGR_NOINLINE void assert_comparison(const Vector& a, const Vector& b, const Vector& res, Comparison comp)
 {
@@ -523,4 +535,65 @@ TEST(IS, epu64_min_max)
     assert_min_max<uint64_t>(c, a, _mm_max_epu64(c,a), std::max);
     assert_min_max<uint64_t>(b, c, _mm_max_epu64(b,c), std::max);
     assert_min_max<uint64_t>(c, b, _mm_max_epu64(c,b), std::max);
+}
+
+
+template<typename Scalar, typename UScalar, typename Vector>
+static void assert_abs(const Vector& a, const Vector& res)
+{
+    const size_t length = sizeof(Vector) / sizeof(Scalar);
+    Scalar  bufA[length];
+    UScalar bufR[length];
+    store(bufA, a);
+    store(bufR, res);
+    for (size_t i=0; i<length; ++i)
+    {
+        ASSERT_EQ(UScalar(std::abs(bufA[i])), bufR[i]);
+    }
+}
+
+
+TEST(IS, epi8_abs)
+{
+    const __m128i a = _mm_set_epi8(-128,-128,-127,-127,-1,-1,0,0,1,1,2,2,126,126,127,127);
+    assert_abs<int8_t, uint8_t>(a, _mm_abs_epi8(a));
+}
+
+
+TEST(IS, epi16_abs)
+{
+    const __m128i a = _mm_set_epi16(-32768,-32767,-1,1,0,-1,0,32767);
+    assert_abs<int16_t, uint16_t>(a, _mm_abs_epi16(a));
+}
+
+
+TEST(IS, epi32_abs)
+{
+    const __m128i a = _mm_set_epi32(INT32_MIN,-1,0,INT32_MAX);
+    assert_abs<int32_t, uint32_t>(a, _mm_abs_epi32(a));
+}
+
+
+TEST(IS, epi64_abs)
+{
+    const __m128i a = _mm_set_epi64x(INT64_MIN,0);
+    const __m128i b = _mm_set_epi64x(-1,INT64_MAX);
+    assert_abs<int64_t, uint64_t>(a, _mm_abs_epi64(a));
+    assert_abs<int64_t, uint64_t>(b, _mm_abs_epi64(b));
+}
+
+
+TEST(IS, ps_abs)
+{
+    const __m128 a = _mm_set_ps(-FLT_MAX,-1,0,FLT_MAX);
+    assert_abs<float, float>(a, _mm_abs_ps(a));
+}
+
+
+TEST(IS, pd_abs)
+{
+    const __m128d a = _mm_set_pd(-FLT_MAX,0);
+    const __m128d b = _mm_set_pd(-1,FLT_MAX);
+    assert_abs<double, double>(a, _mm_abs_pd(a));
+    assert_abs<double, double>(b, _mm_abs_pd(b));
 }
